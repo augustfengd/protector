@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "challenge"
+version = "0.1.0"
+description = ""
+authors = ["August Feng <au.fengster@gmail.com>"]
+
+[tool.poetry.scripts]
+protect = 'challenge.protector:main'
+
+[tool.poetry.dependencies]
+python = "^3.8"
+prometheus-client = "^0.12.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6"
+pytest-xdist = "^2.4.0"
+flake8 = "^4.0.1"
+ipython = "^7.30.0"
+
+[tool.pytest.ini_options]
+log_level = "INFO"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,111 @@
+#+TITLE: Questions & Answers (August Feng)
+
+* Level 1
+** How would you prove the code is correct?
+
+   - Unit tests can assert certain expected behaviors of the code.
+
+   - Integration testing would assure that the program functions properly at a
+     higher level.
+
+** How would you make this solution better?
+
+   - I would avoid using a polling-based solution, and invest into a solution
+     that could hook into the host's network stack.
+
+   - I don't think the code handles signals too well (SIGTERM, ..). This would
+     need some more attention, especially if we intend to deploy in production.
+
+   - I'm using a function ~time.sleep~ to schedule the code execution. It's
+     blocking the main thread, which is problem once we need to implement
+     signals.
+
+** Is it possible for this program to miss a connection?
+
+   This program can only capture connections that have been fully established.
+   
+   Port scanners don't need to complete the TCP handshake during their probing,
+   so their scans will go completely undetected.
+   
+   The two main states that we are capturing in the /proc/net/tcp are
+   ~TCP_ESTABLISHED~ and ~TCP_CLOSE_WAIT~. I wonder if the client forges a RST
+   packet, would it forcefully remove the connection from the /proc/net/tcp
+   file? If so, then the entry could be created and removed before it gets
+   sampled.
+
+   In other news though, I think the ~TCP_CLOSE_WAIT~ has a timeout of 60s, so
+   we are good on that front.
+
+   There's a lot of edge cases in the TCP to consider, imo.
+
+** If you weren't following these requirements, how would you solve the problem of logging connection?
+
+   I would be interested in finding a way to programmatically access and filter
+   the network traffic for only inbound SYN packets. I'd check out how
+   wireshark/tcp are doing it, and see how I could use the same technology for
+   this challenge.
+
+* Level 2
+
+** Why did you choose x to write the build automation?
+
+   I think GNU Make is time-tested and still used across all software projects.
+   If we use a tool that's widely adopted, then we benefit indirectly the suport
+   given by the other project.
+
+   GNU also makes some of my favorite tools: bash, emacs, coreutils and some
+   other small-scale utilities.
+   
+** Is there anything else you would test if you had more time?
+
+   I would like to at least have one integration test. I started working on an
+   container-based infrastructure, but I found it to be too fragile and
+   difficult to use in the end.
+
+** What is the most important tool, script, or technique you have for solving problems in production? Explain why this tool/script/technique is the most important.
+
+   I think that mastering the shell and terminal-based utilities has let me be
+   extremely nimble when it comes to troubleshooting server applications.
+
+   Here are some neat tricks that helped me easily identify root cause issues:
+
+   #+begin_src bash
+     # use proces substitution to easily compare two different deployments
+     vimdiff <(kubectl --context <REPLACEME> get pods <REPLACEME> -o yaml) <(kubectl --context <REPLACEME> get pods <REPLACEME> -oyaml)
+     
+     # navigate the logs easier with vim
+     docker logs <REPLACME> 2>&1 | vim -
+   #+end_src
+   
+   I find logs and monitoring critically helpful when troubleshooting
+   applications. It's especially critical the application is no longer faulty,
+   and we need to identify the root cause. Additionally, I'm not too bad of a
+   PromQL expression crafter ! :)
+
+* Level 3
+** If you had to deploy this program to hundreds of servers, what would be your preferred method? Why?
+
+   My answer would vary greatly depending on the infrastructure that is already
+   in place:
+
+   - If there is a the software configuration management system in place, then I
+     would leverage that.
+
+   - If the servers are part of a kubernetes cluster, I would investigate
+     the possibility of using a daemonsets.
+
+   - If docker is not installed on the machines, I would repackage the
+     application to be a systemd unit.
+
+** What is the hardest technical problem or outage you've had to solve in your career? Explain what made it so difficult?
+
+   I would say the hardest technical problem would have been when I needed to
+   migrate multi-tenant kubernetes clusters from the in-tree storage system, to
+   its CSI equivalent.
+
+   At the time, I was really new to Kubernetes and also single-handedly
+   responsible for the migration. I feared that the upgrade would break the
+   clusters' storage system system, and then lose volume bindings between the
+   cloud backend and kubernetes.
+
+   I studied and prepared very thoroughly, the migration smoothly in the end.

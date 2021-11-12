@@ -1,0 +1,59 @@
+* Protector
+
+*protector* is a containerized python utility which monitors the ipv4 interface
+file ~/proc/net/tcp~ for potential port scans and consequently blocks further
+inbound connections !
+
+* Usage
+
+  On the host machine, first build the image and then run the container with the
+  following command:
+
+  #+begin_src bash
+    # run the container in detached mode, and immediately stream in the container's logs.
+    docker run -d --cap-add=NET_ADMIN --network host challenge/protector:0.1.0 | xargs docker logs -f
+  #+end_src
+
+  #+begin_quote
+  :warning:
+  The program requires the linux capability /CAP_NET_ADMIN/ as it
+  configures the hosts' firewall in response to port scans. This capability can
+  be added to the container with the option ~--cap-add=NET_ADMIN~.
+  #+end_quote
+  
+* Development
+
+** Prerequisites
+
+   This project is developed with the following tools:
+   
+   - GNU Make >= 4.2.1
+   - Docker >= 20.10.10
+   - Poetry >= 1.1.11 (installation instructions available at https://python-poetry.org/docs/#installation)
+
+   Once poetry is installed, simply run ~poetry install~ to install the project
+   dependencies. This will create and configure a virtual environment for
+   the project.
+
+** Testing
+
+   The project uses /pytest framework/ for testing, and the plugin
+   /pytest-xdist/ for its ~--forked~ flag.
+
+   The tests involve heavy mocking of the /proc/net/tcp file. The mock files are
+   suffixed in sequential numbers as a way to indicate incrementally new
+   connections.
+
+   Some tests are written in pairs, ~*{,_logging}~, to test the function output
+   and the logging seperately.
+ 
+   The tests can by run with the command:
+
+   #+begin_src bash
+     make test
+   #+end_src
+
+** Building
+
+   The program is distributed in the form of a docker container. A simple ~make~
+   command will build the container image and version tag appropriately.
